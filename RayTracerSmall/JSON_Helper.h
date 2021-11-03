@@ -1,12 +1,39 @@
 #pragma once
 #include<string>
+#include<vector>
+#include<fstream>
 #include<rapidjson.h>
-
+#include <writer.h>
+#include <document.h>
+#include <istreamwrapper.h>
+#include <ostreamwrapper.h>
 using namespace std;
+using namespace rapidjson;
+//position, radius, surface color, reflectivity, transparency, emission color
+struct SphereData
+{
+	float Position[3];
+	float surface_Color[3];
+	float emission_Color[3];
+	float radius;
+	float reflectivity;
+	float transparency;
+};
+
+// Check node is there
+template <typename DataFormat>
+bool CheckDataIsThere(const std::string& objectName, const DataFormat& document)
+{
+	return document.HasMember(objectName.c_str());;
+}
 
 class JSON_Helper
 {
+public:
+	static vector<SphereData> LoadJsonFile(string file);
 
+
+private:
+	static Document ParseFile(const std::string& file);
 };
 
-void LoadJsonFile(string file);

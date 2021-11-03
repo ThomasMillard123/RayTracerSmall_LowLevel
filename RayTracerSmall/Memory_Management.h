@@ -67,3 +67,19 @@ struct Footer
 	int reserved;
 	int checkvalue = 0xDEADC0DE;
 };
+
+
+
+
+class MemoryPoolClass
+{
+public:
+	MemoryPoolClass(size_t objectSize);
+	~MemoryPoolClass();
+
+	void* Alloc(size_t size);
+	void Free(void* p, size_t size);
+private:
+
+};
+

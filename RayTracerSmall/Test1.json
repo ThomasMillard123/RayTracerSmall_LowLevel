@@ -1,5 +1,43 @@
 {
+  "SphereObjects": [
+    {
 
+      "Position": [ 0.005, 0.005, 0.005 ],
+      "Position_Move_Speed": [ 0.0, 0.0, 0.0 ],
+      "Surface_Color": [ 70.5, 0.0, 4.0 ],
+      "Surface_Color_Final": [ 70.5, 0.0, 4.0 ],
+      "emission_Color": [ 0.0, 0.0, 0.0 ],
+      "Radius": 0.0,
+      "Radius_Change": 1.0,
+      "Reflectivity": 0.0,
+      "Transparency": 0.0
+    },
+    {
+
+      "Position": [ 0.005, 0.005, 0.005 ],
+      "Position_Move_Speed": [ 0.0, 0.0, 0.0 ],
+      "Surface_Color": [ 70.5, 0.0, 4.0 ],
+      "Surface_Color_Final": [ 70.5, 0.0, 4.0 ],
+      "emission_Color": [ 0.0, 0.0, 0.0 ],
+      "Radius": 0.0,
+      "Radius_Change": 0.0,
+      "Reflectivity": 0.0,
+      "Transparency": 0.0
+    },
+    {
+
+      "Position": [ 0.005, 0.005, 0.005 ],
+      "Position_Move_Speed": [ 0.0, 0.0, 0.0 ],
+      "Surface_Color": [ 70.5, 0.0, 4.0 ],
+      "Surface_Color_Final": [ 70.5, 0.0, 4.0 ],
+      "emission_Color": [ 0.0, 0.0, 0.0 ],
+      "Radius": 0.0,
+      "Radius_Change": 0.0,
+      "Reflectivity": 0.0,
+      "Transparency": 0.0
+    }
+  ],
+  "version": "0.1"
 
 
 }

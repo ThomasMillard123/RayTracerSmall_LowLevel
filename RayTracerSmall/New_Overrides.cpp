@@ -55,18 +55,20 @@ void* operator new (size_t size, Heap* heap) {
 }
 void operator delete (void* pMem) {
 
-	Header* pHeader = (Header*)((char*)pMem - sizeof(Header));
+	
+		Header* pHeader = (Header*)((char*)pMem - sizeof(Header));
 
-	if (pHeader->pHeap != nullptr)
-	{
-		pHeader->pHeap->RemoveBytesAllocated(pHeader->size);
+		if (pHeader->pHeap != nullptr)
+		{
+			pHeader->pHeap->RemoveBytesAllocated(pHeader->size);
 
-		Footer* pFooter = (Footer*)((char*)pMem + pHeader->size);
+			Footer* pFooter = (Footer*)((char*)pMem + pHeader->size);
 
 
-	}
+		}
 
-	std::cout << "\n checkvalue: " << pHeader->checkvalue << "\n Size: " << pHeader->size << "\n";
+		std::cout << "\n checkvalue: " << pHeader->checkvalue << "\n Size: " << pHeader->size << "\n";
 
-	free(pHeader);
+		free(pHeader);
+	
 }
