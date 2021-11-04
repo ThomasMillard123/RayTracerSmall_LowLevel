@@ -57,11 +57,22 @@ vector<SphereData> JSON_Helper::LoadJsonFile(string file)
 					i++;
 				}
 			}
+			if (CheckDataIsThere<Value>("Position_Move_Speed", Object))
+			{
+				int i = 0;
+				for (Value& ob : Object["Position_Move_Speed"].GetArray()) {
+					objectData.PositionMove[i] = ob.GetFloat();
+					i++;
+				}
+			}
 			if (CheckDataIsThere<Value>("Radius", Object))
 			{
 				objectData.radius = Object["Radius"].GetFloat();
 			}
-
+			if (CheckDataIsThere<Value>("Radius_Change", Object))
+			{
+				objectData.radiusChange = Object["Radius_Change"].GetFloat();
+			}
 			if (CheckDataIsThere<Value>("Reflectivity", Object))
 			{
 				objectData.reflectivity = Object["Reflectivity"].GetFloat();
@@ -71,7 +82,7 @@ vector<SphereData> JSON_Helper::LoadJsonFile(string file)
 				objectData.transparency = Object["Transparency"].GetFloat();
 			}
 		
-			data.push_back(std::move(objectData));
+			data.push_back(objectData);
 		}
 	}
 

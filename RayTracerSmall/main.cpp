@@ -38,7 +38,10 @@
 // Windows doesn't define these values by default, Linux does
 #define M_PI 3.141592653589793
 #define INFINITY 1e8
+
 #endif
+
+
 
 template<typename T>
 class Vec3
@@ -83,6 +86,10 @@ public:
 	float radius, radius2;                  /// sphere radius and radius^2
 	Vec3f surfaceColor, emissionColor;      /// surface color and emission (light)
 	float transparency, reflection;         /// surface transparency and reflectivity
+
+	float radiusChange,radiusOrignal;
+	Vec3f posMove,centerOrignal;
+
 	Sphere(
 		const Vec3f &c,
 		const float &r,
@@ -91,7 +98,7 @@ public:
 		const float &transp = 0,
 		const Vec3f &ec = 0) :
 		center(c), radius(r), radius2(r * r), surfaceColor(sc), emissionColor(ec),
-		transparency(transp), reflection(refl)
+		transparency(transp), reflection(refl),radiusOrignal(r), centerOrignal(c)
 	{ /* empty */
 	}
 	//[comment]
@@ -110,6 +117,24 @@ public:
 
 		return true;
 	}
+
+	void updateA(float frame){
+		radius= lerp(radiusOrignal, radiusChange,frame);
+		radius2 = radius * radius;
+
+		center = lerp(centerOrignal, posMove, frame);
+	}
+	
+	float lerp(float a, float b, float f)
+	{
+		return a + f * (b - a);
+	}
+	Vec3f lerp(Vec3f a, Vec3f b, Vec3f f)
+	{
+		return a + f * (b - a);
+	}
+
+	
 };
 
 //[comment]
@@ -318,36 +343,46 @@ void SimpleShrinking()
 	}
 }
 
+
 void SmoothScaling()
 {
+	//error with this vector removes itslef???
 	std::vector<Sphere> spheres;
+	std::vector<Sphere> spheres1;
 	// Vector structure for Sphere (position, radius, surface color, reflectivity, transparency, emission color)
 
 	//load data from json
-	/*std::vector<SphereData> data= JSON_Helper::LoadJsonFile("Test1.json");
+	std::vector<SphereData> data= JSON_Helper::LoadJsonFile("Test1.json");
 
 	for (const auto& data1 : data) {
-		spheres.push_back(Sphere(Vec3f(data1.Position[0], data1.Position[1], data1.Position[2]), data1.radius, Vec3f(data1.surface_Color[0], data1.surface_Color[1], data1.surface_Color[2]), 
+		spheres1.push_back(Sphere(Vec3f(data1.Position[0], data1.Position[1], data1.Position[2]), data1.radius, Vec3f(data1.surface_Color[0], data1.surface_Color[1], data1.surface_Color[2]),
 			data1.reflectivity, data1.transparency, Vec3f(data1.emission_Color[0], data1.emission_Color[1], data1.emission_Color[2])));
-	}*/
+
+		spheres1.back().radiusChange = data1.radiusChange;
+		spheres1.back().posMove = Vec3f(data1.PositionMove[0], data1.PositionMove[1], data1.PositionMove[2]);
+
+	}
 
 
 	for (float r = 0; r <= 100; r++)
 	{
-		spheres.push_back(Sphere(Vec3f(0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
-		spheres.push_back(Sphere(Vec3f(0.0, 0, -20), r / 100, Vec3f(1.00, 0.32, 0.36), 1, 0.5)); // Radius++ change here
-		spheres.push_back(Sphere(Vec3f(5.0, -1, -15), 2, Vec3f(0.90, 0.76, 0.46), 1, 0.0));
-		spheres.push_back(Sphere(Vec3f(5.0, 0, -25), 3, Vec3f(0.65, 0.77, 0.97), 1, 0.0));
+		//spheres.push_back(Sphere(Vec3f(0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
+		//spheres.push_back(Sphere(Vec3f(0.0, 0, -20), r / 100, Vec3f(1.00, 0.32, 0.36), 1, 0.5)); // Radius++ change here
+		//spheres.push_back(Sphere(Vec3f(5.0, -1, -15), 2, Vec3f(0.90, 0.76, 0.46), 1, 0.0));
+		//spheres.push_back(Sphere(Vec3f(5.0, 0, -25), 3, Vec3f(0.65, 0.77, 0.97), 1, 0.0));
 
-
+		for (Sphere& sphere : spheres1) {
+			sphere.updateA(r/100);
+		}
 		
 
-		render(spheres, r);
+		render(spheres1, r);
 		std::cout << "Rendered and saved spheres" << r << ".ppm" << std::endl;
 		// Dont forget to clear the Vector holding the spheres.
-		spheres.clear();
+		//spheres.clear();
 
 	}
+	spheres1.clear();
 }
 //[comment]
 // In the main function, we will create the scene which is composed of 5 spheres

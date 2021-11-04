@@ -7,7 +7,7 @@ void* operator new (size_t size) {
 
 	void* pStartMemBlock = ::operator new (size, h);
 	return pStartMemBlock;
-	return nullptr;
+	
 }
 
 void* operator new (size_t size, Heap* heap) {

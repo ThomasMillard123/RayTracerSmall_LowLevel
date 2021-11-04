@@ -7,17 +7,23 @@
 #include <document.h>
 #include <istreamwrapper.h>
 #include <ostreamwrapper.h>
+
+
+//Json pars from:https://github.com/Tencent/rapidjson/ 
+
 using namespace std;
 using namespace rapidjson;
 //position, radius, surface color, reflectivity, transparency, emission color
 struct SphereData
 {
 	float Position[3];
+	float PositionMove[3];
 	float surface_Color[3];
 	float emission_Color[3];
 	float radius;
 	float reflectivity;
 	float transparency;
+	float radiusChange;
 };
 
 // Check node is there
