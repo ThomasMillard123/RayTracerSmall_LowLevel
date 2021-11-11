@@ -10,7 +10,7 @@ void Memory_Management::AddHeap(string Name)
 Heap* Memory_Management::GetHeap(string Name)
 {
 
-	for (Heap* HeapData : _Heap) {
+	for (const auto& HeapData : _Heap) {
 		if (HeapData->GetName() == Name) {
 			return HeapData;
 		}
@@ -21,12 +21,18 @@ Heap* Memory_Management::GetHeap(string Name)
 
 void Memory_Management::RemoveAllHeap()
 {
+	for (auto& HeapData : _Heap) {
+		delete HeapData;
+	}
+
     _Heap.clear();
 }
 
+//this stops the loop when a defual heap is created
 static bool Load = true;
 Heap* Memory_Management::GetDefaultHeap()
 {
+	//checks if there is a default heap if not creat one
 	if (DefaultHeap == nullptr && Load) {
 		Load = false;
 		DefaultHeap = new Heap();
@@ -60,7 +66,7 @@ void Heap::SetUp()
 	Name = "Default";
 	totalNumberOfbytes = 0;
 }
-
+//adds data to the heap
 void Heap::AddBytesAllocated(int numberOfBytes)
 {
 
@@ -71,7 +77,7 @@ void Heap::AddBytesAllocated(int numberOfBytes)
 	cout << "Total " << totalNumberOfbytes << "\n";
 
 }
-
+//removes data from the heap
 void Heap::RemoveBytesAllocated(int numberOfBytes)
 {
 	totalNumberOfbytes -= numberOfBytes;
@@ -79,21 +85,33 @@ void Heap::RemoveBytesAllocated(int numberOfBytes)
 	cout << "\n Name: " << Name << "\n";
 	cout << "Number of bytes removed: " << numberOfBytes << "\n";
 	cout << "Total " << totalNumberOfbytes << "\n";
-}
 
+	if (totalNumberOfbytes == 0) {
+		start = nullptr;
+	}
+
+}
+//outputs all data within the heap in a readable format
 void Heap::GetAllData()
 {
 	int count = 0;
+	string errors;
 	cout << "\n Heap name: " << Name << endl;
 
-	printf("|%10s|%5s| \n", "checkvalue", "size");
+	printf("|%20s|%20s|%20s|%20s|%20s|%20s| \n","Current Hedder", "checkvalue", "size","pointer Heap","pointer Prev header","pointer Next headder");
 	Header* curr = start;
 	while (curr != nullptr)
 	{
+		
 
-
-		printf("|%10X|%5i| \n", curr->checkvalue, curr->size);
+		printf("|%20p|%20X|%20i|%20p|%20p|%20p| \n",curr, curr->checkvalue, curr->size,Current->pHeap,curr->pPrev,curr->pNext);
 		count++;
+
+
+
+		if (curr->checkvalue != 0xDEADC0DE) {
+			errors += "Over written memomory \n";
+		}
 
 
 		curr = curr->pNext;
@@ -102,7 +120,12 @@ void Heap::GetAllData()
 
 	}
 
-	printf("|%*s %i| \n", 15, "Total objects", count);
+	printf("|%20s %83i| \n", "Total objects", count);
+	printf("|%20s %83i| \n", "Total bytes", totalNumberOfbytes);
+	printf("%20s \n %s \n", "Errors:", errors.c_str());
+
 }
+
+
 
 

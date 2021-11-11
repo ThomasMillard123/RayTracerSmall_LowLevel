@@ -13,7 +13,7 @@
 
 using namespace std;
 using namespace rapidjson;
-//position, radius, surface color, reflectivity, transparency, emission color
+//position, radius, surface color, reflectivity, transparency, emission color and change vars
 struct SphereData
 {
 	float Position[3];
@@ -33,6 +33,9 @@ bool CheckDataIsThere(const std::string& objectName, const DataFormat& document)
 	return document.HasMember(objectName.c_str());;
 }
 
+/// <summary>
+/// Load shphere data form json file
+/// </summary>
 class JSON_Helper
 {
 public:

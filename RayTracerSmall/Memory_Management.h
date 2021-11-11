@@ -9,6 +9,9 @@ using namespace std;
 
 
 class Heap;
+/// <summary>
+/// this is a factory for creating and tracking heaps
+/// </summary>
 typedef vector<Heap*> vecHeap;
 class Memory_Management
 {
@@ -27,6 +30,9 @@ private:
 
 
 struct Header;
+/// <summary>
+/// heap class is for tracking memory it can call all memeory alocated to it.
+/// </summary>
 class Heap
 {
 public:
@@ -65,21 +71,19 @@ struct Header
 struct Footer
 {
 	int reserved;
-	int checkvalue = 0xDEADC0DE;
+	int checkvalue = 0xDEADC00DE;
 };
 
 
-
-
-class MemoryPoolClass
+struct Chunk
 {
-public:
-	MemoryPoolClass(size_t objectSize);
-	~MemoryPoolClass();
+	size_t size;
+	void* mem;
+	bool isAllocated;
 
-	void* Alloc(size_t size);
-	void Free(void* p, size_t size);
-private:
-
+	Chunk* nextChunck;
+	Chunk* PrevChunck;
 };
+
+
 

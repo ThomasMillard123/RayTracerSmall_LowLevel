@@ -150,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JSON_Helper.h" />
+    <ClInclude Include="MemoryPool.h" />
     <ClInclude Include="Memory_Management.h" />
     <ClInclude Include="New_Overrides.h" />
   </ItemGroup>
