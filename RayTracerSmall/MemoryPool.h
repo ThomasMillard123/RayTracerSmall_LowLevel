@@ -7,7 +7,7 @@
 #include <vector>
 #include <cstddef>
 #include <cstdlib>
-
+#include<mutex>
 
 using namespace std;
 
@@ -118,6 +118,7 @@ private:
 	//create Block
 	Chunk* allocate_block(Chunk* tail) {
 		//error
+		//unique_lock guard(m_lock);
 		if (NextChunk != nullptr)
 			return NextChunk;
 
@@ -151,5 +152,5 @@ private:
 	}
 
 	vector<void*> blockList;
-
+	std::mutex m_lock;
 };

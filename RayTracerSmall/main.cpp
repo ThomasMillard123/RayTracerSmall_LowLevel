@@ -27,10 +27,13 @@
 #include <vector>
 #include <iostream>
 #include <cassert>
+
 // Windows only
 #include <algorithm>
 #include <sstream>
 #include <string.h>
+#include<chrono>
+#include<thread>
 
 
 
@@ -108,7 +111,7 @@ public:
 
 typedef Vec3<float> Vec3f;
 
-static const int width = 640, height = 480;
+static const int Width = 640, Height = 480;
 
 
 
@@ -211,6 +214,7 @@ Vec3f trace(
 	float tnear = INFINITY;
 	const Sphere* sphere = NULL;
 	// find intersection of this ray with the sphere in the scene
+
 	for (unsigned i = 0; i < spheres.size(); ++i) {
 		float t0 = INFINITY, t1 = INFINITY;
 		if (spheres[i]->intersect(rayorig, raydir, t0, t1)) {
@@ -221,6 +225,7 @@ Vec3f trace(
 			}
 		}
 	}
+
 	// if there's no intersection return black or background color
 	if (!sphere) return Vec3f(2);
 	Vec3f surfaceColor = 0; // color of the ray/surfaceof the object intersected by the ray
@@ -284,7 +289,21 @@ Vec3f trace(
 	return surfaceColor + sphere->emissionColor;
 }
 
-static PoolAllocator<sizeof(Vec3f[width * height]), 1>* RenderImmagePool;
+static PoolAllocator<sizeof(Vec3f[Width * Height]), 1>* RenderImmagePool;
+mutex Lock;
+void Raytrace(Vec3f* pixel,const std::vector<Sphere*>& spheres, int height, int width , float invWidth,float invHeight,float angle, float aspectratio,int yI,int xI) {
+
+	for (unsigned y = yI; y < height; ++y) {
+		for (unsigned x = xI; x < width; ++x, ++pixel) {
+			float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
+			float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
+			Vec3f raydir(xx, yy, -1);
+			raydir.normalize();
+			
+			*pixel = trace(Vec3f(0), raydir, spheres, 0);
+		}
+	}
+}
 
 //[comment]
 // Main rendering function. We compute a camera ray for each pixel of the image
@@ -294,7 +313,7 @@ static PoolAllocator<sizeof(Vec3f[width * height]), 1>* RenderImmagePool;
 void render(const std::vector<Sphere*> &spheres, int iteration)
 {
 	// quick and dirty
-	unsigned width = 640, height = 480;
+	unsigned width = Width, height = Height;
 	// Recommended Testing Resolution
 	//unsigned width = 640, height = 480;
 
@@ -302,107 +321,74 @@ void render(const std::vector<Sphere*> &spheres, int iteration)
 	//unsigned width = 1920, height = 1080;
 	//alocate data in memory pool
 	Vec3f *image = (Vec3f*)RenderImmagePool->Allocate() , * pixel = image;
+
 	float invWidth = 1 / float(width), invHeight = 1 / float(height);
 	float fov = 30, aspectratio = width / float(height);
 	float angle = tan(M_PI * 0.5 * fov / 180.);
-	// Trace rays
-	for (unsigned y = 0; y < height; ++y) {
-		for (unsigned x = 0; x < width; ++x, ++pixel) {
-			float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
-			float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
-			Vec3f raydir(xx, yy, -1);
-			raydir.normalize();
-			*pixel = trace(Vec3f(0), raydir, spheres, 0);
-		}
-	}
+
+	int numberOfThreads = 4;
+
+	//create threads
+	thread t1 (Raytrace,pixel, spheres, height/ numberOfThreads, width, invWidth, invHeight, angle, aspectratio,0,0);
+	thread t2 (Raytrace,pixel+ (height / numberOfThreads) * width, spheres, (height/4)*2, width, invWidth, invHeight, angle, aspectratio, (height / numberOfThreads),0);
+	thread t3 (Raytrace,pixel+ ((height / numberOfThreads) * width)*2, spheres, (height / 4) * 3, width, invWidth, invHeight, angle, aspectratio, (height / numberOfThreads)*2, 0);
+	thread t4 (Raytrace,pixel+ ((height / numberOfThreads) * width)*3, spheres, (height / 4) * 4, width, invWidth, invHeight, angle, aspectratio,(height / numberOfThreads)*3,0);
+
+
+	//join threads
+	t1.join();
+	t2.join();
+	t3.join();
+	t4.join();
+
+
 	// Save result to a PPM image (keep these flags if you compile under Windows)
 	std::stringstream ss;
 	ss << "./spheres" << iteration << ".ppm";
 	std::string tempString = ss.str();
 	char* filename = (char*)tempString.c_str();
 
-	std::ofstream ofs(filename, std::ios::out | std::ios::binary);
-	ofs << "P6\n" << width << " " << height << "\n255\n";
-	for (unsigned i = 0; i < width * height; ++i) {
-		ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
-			(unsigned char)(std::min(float(1), image[i].y) * 255) <<
-			(unsigned char)(std::min(float(1), image[i].z) * 255);
-	}
-	ofs.close();
+	//C style file load
+	FILE* data;
+	data = fopen(filename, "wb");
 
+	if (data != NULL)
+	{
+
+
+		string headderString = "P6\n" + to_string(width) + " " + to_string(height) + "\n255\n";
+		std::fwrite(headderString.c_str(), sizeof(char), headderString.size(), data);
+
+		unsigned char outImmage[(Width * Height) * 3];
+		int dataPosition = 0;
+		for (unsigned i = 0; i < width * height; ++i) {
+			outImmage[dataPosition] = (unsigned char)(std::min(float(1), image[i].x) * 255);
+			++dataPosition;
+			outImmage[dataPosition] = (unsigned char)(std::min(float(1), image[i].y) * 255);
+			++dataPosition;
+			outImmage[dataPosition] = (unsigned char)(std::min(float(1), image[i].z) * 255);
+			++dataPosition;
+		}
+
+		std::fwrite(outImmage, sizeof(unsigned char), sizeof(outImmage), data);
+
+
+		std::fclose(data);
+	}
 	RenderImmagePool->GetAllData();
 
 	//dealocate memory from immage pool
 	RenderImmagePool->Deallocate(image);
 
 	RenderImmagePool->GetAllData();
+	Memory_Management::GetDefaultHeap()->GetAllData();
 }
-
-void BasicRender()
-{
-	std::vector<Sphere> spheres;
-	// Vector structure for Sphere (position, radius, surface color, reflectivity, transparency, emission color)
-
-	spheres.push_back(Sphere(Vec3f(0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
-	spheres.push_back(Sphere(Vec3f(0.0, 0, -20), 4, Vec3f(1.00, 0.32, 0.36), 1, 0.5)); // The radius paramter is the value we will change
-	spheres.push_back(Sphere(Vec3f(5.0, -1, -15), 2, Vec3f(0.90, 0.76, 0.46), 1, 0.0));
-	spheres.push_back(Sphere(Vec3f(5.0, 0, -25), 3, Vec3f(0.65, 0.77, 0.97), 1, 0.0));
-	
-	// This creates a file, titled 1.ppm in the current working directory
-	//render(spheres, 1);
-
-}
-
-void SimpleShrinking()
-{
-	
-	std::vector<Sphere> spheres;
-	// Vector structure for Sphere (position, radius, surface color, reflectivity, transparency, emission color)
-
-	for (int i = 0; i < 4; i++)
-	{
-		if (i == 0)
-		{
-			spheres.push_back(Sphere(Vec3f(0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
-			spheres.push_back(Sphere(Vec3f(0.0, 0, -20), 4, Vec3f(1.00, 0.32, 0.36), 1, 0.5)); // The radius paramter is the value we will change
-			spheres.push_back(Sphere(Vec3f(5.0, -1, -15), 2, Vec3f(0.90, 0.76, 0.46), 1, 0.0));
-			spheres.push_back(Sphere(Vec3f(5.0, 0, -25), 3, Vec3f(0.65, 0.77, 0.97), 1, 0.0));
-
-		}
-		else if (i == 1)
-		{
-			spheres.push_back(Sphere(Vec3f(0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
-			spheres.push_back(Sphere(Vec3f(0.0, 0, -20), 3, Vec3f(1.00, 0.32, 0.36), 1, 0.5)); // Radius--
-			spheres.push_back(Sphere(Vec3f(5.0, -1, -15), 2, Vec3f(0.90, 0.76, 0.46), 1, 0.0));
-			spheres.push_back(Sphere(Vec3f(5.0, 0, -25), 3, Vec3f(0.65, 0.77, 0.97), 1, 0.0));
-		}
-		else if (i == 2)
-		{
-			spheres.push_back(Sphere(Vec3f(0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
-			spheres.push_back(Sphere(Vec3f(0.0, 0, -20), 2, Vec3f(1.00, 0.32, 0.36), 1, 0.5)); // Radius--
-			spheres.push_back(Sphere(Vec3f(5.0, -1, -15), 2, Vec3f(0.90, 0.76, 0.46), 1, 0.0));
-			spheres.push_back(Sphere(Vec3f(5.0, 0, -25), 3, Vec3f(0.65, 0.77, 0.97), 1, 0.0));
-		}
-		else if (i == 3)
-		{
-			spheres.push_back(Sphere(Vec3f(0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
-			spheres.push_back(Sphere(Vec3f(0.0, 0, -20), 1, Vec3f(1.00, 0.32, 0.36), 1, 0.5)); // Radius--
-			spheres.push_back(Sphere(Vec3f(5.0, -1, -15), 2, Vec3f(0.90, 0.76, 0.46), 1, 0.0));
-			spheres.push_back(Sphere(Vec3f(5.0, 0, -25), 3, Vec3f(0.65, 0.77, 0.97), 1, 0.0));
-		}
-
-		//render(spheres, i);
-		// Dont forget to clear the Vector holding the spheres.
-		spheres.clear();
-	}
-}
-
 
 void SmoothScaling()
 {
 
 	//set up object pool
-	RenderImmagePool = new PoolAllocator< sizeof(Vec3f[width * height]),1>();
+	RenderImmagePool = new PoolAllocator< sizeof(Vec3f[Width * Height]),1>();
 
 	//error with this vector removes itslef???
 	//std::vector<Sphere> spheres;
@@ -421,17 +407,19 @@ void SmoothScaling()
 
 	}
 
-
-	for (float r = 0; r <= 100; r++)
+	int frame = 100;
+	for (float r = 0; r <= frame; r++)
 	{
 	
 
 		for (Sphere* sphere : spheres1) {
-			sphere->updateA(r/100);
+			sphere->updateA(r/ frame);
 		}
 		
 
 		render(spheres1, r);
+
+
 		std::cout << "Rendered and saved spheres" << r << ".ppm" << std::endl;
 
 
@@ -459,21 +447,19 @@ void SmoothScaling()
 //[/comment]
 int main(int argc, char **argv)
 {
+
 	//creat heaps 
 	Memory_Management::AddHeap("RenderObjects");
-	
-	
-
 	//start check
 	Memory_Management::GetDefaultHeap()->GetAllData();
 
-	
-	// This sample only allows one choice per program execution. Feel free to improve upon this
-	srand(13);
-	//BasicRender();
-	//SimpleShrinking();
+	auto start = std::chrono::steady_clock::now();
+
 	SmoothScaling();
 
+	auto finish = std::chrono::steady_clock::now();
+	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+	cout << elapsed_seconds << endl;
 
 	//end check
 	Memory_Management::GetHeap("RenderObjects")->GetAllData();
@@ -483,6 +469,7 @@ int main(int argc, char **argv)
 
 	Memory_Management::GetDefaultHeap()->GetAllData();
 
+	
 	return 0;
 }
 

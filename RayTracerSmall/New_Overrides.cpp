@@ -55,7 +55,7 @@ void* operator new (size_t size, Heap* heap) {
 
 
 	//output values going in
-	printf("\n New header: \n Value: %p \n checkvalue: %x \n Size: %i \n Heap: %p \n Next: %p\n prev: %p \n", pHeader, pHeader->checkvalue, pHeader->size , pHeader->pHeap, pHeader->pNext, pHeader->pPrev);
+	//printf("\n New header: \n Value: %p \n checkvalue: %x \n Size: %i \n Heap: %p \n Next: %p\n prev: %p \n", pHeader, pHeader->checkvalue, pHeader->size , pHeader->pHeap, pHeader->pNext, pHeader->pPrev);
 
 	return pStartMemBlock;
 }
@@ -99,7 +99,7 @@ void operator delete (void* pMem) {
 		}
 	
 		//say what is being deleted
-		printf("\n Delete header: \n Value: %p \n checkvalue: %x \n Size: %i \n Heap: %p \n Next: %p\n prev: %p \n", pHeader, pHeader->checkvalue, pHeader->size, pHeader->pHeap, pHeader->pNext, pHeader->pPrev);
+		//printf("\n Delete header: \n Value: %p \n checkvalue: %x \n Size: %i \n Heap: %p \n Next: %p\n prev: %p \n", pHeader, pHeader->checkvalue, pHeader->size, pHeader->pHeap, pHeader->pNext, pHeader->pPrev);
 
 		free(pHeader);
 	

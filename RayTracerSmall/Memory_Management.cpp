@@ -72,9 +72,9 @@ void Heap::AddBytesAllocated(int numberOfBytes)
 
 	totalNumberOfbytes += numberOfBytes;
 
-	cout << "\n\n Name: " << Name << "\n";
+	/*cout << "\n\n Name: " << Name << "\n";
 	cout << "Number of bytes added: " << numberOfBytes << "\n";
-	cout << "Total " << totalNumberOfbytes << "\n";
+	cout << "Total " << totalNumberOfbytes << "\n";*/
 
 }
 //removes data from the heap
@@ -82,9 +82,9 @@ void Heap::RemoveBytesAllocated(int numberOfBytes)
 {
 	totalNumberOfbytes -= numberOfBytes;
 
-	cout << "\n Name: " << Name << "\n";
-	cout << "Number of bytes removed: " << numberOfBytes << "\n";
-	cout << "Total " << totalNumberOfbytes << "\n";
+	//cout << "\n Name: " << Name << "\n";
+	//cout << "Number of bytes removed: " << numberOfBytes << "\n";
+	//cout << "Total " << totalNumberOfbytes << "\n";
 
 	if (totalNumberOfbytes == 0) {
 		start = nullptr;
